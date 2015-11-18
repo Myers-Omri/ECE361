@@ -16,6 +16,7 @@ import java.util.PriorityQueue;
 import java.util.Collections;
 import java.util.Random;
 
+import javax.lang.model.type.NullType;
 import javax.xml.ws.handler.MessageContext.Scope;
 
 // The network is represented by a graph, that contains nodes and edges
@@ -90,6 +91,18 @@ public class RoutingClient {
 
 	public static List<Integer> getShortestPathTo(Node target)
 	{
+		List<Integer> path = new ArrayList<Integer>();
+		Node tmpTarget = target;
+
+		while (tmpTarget ) { //how to check if not null??
+			path.add(0, tmpTarget.name);
+			tmpTarget = tmpTarget.previous;
+		}
+
+		return path;
+	}
+
+
 		// Complete the body of this function
 	}
 
@@ -154,7 +167,7 @@ public class RoutingClient {
 
 				// Send noNodes to the server, and read a String from it containing adjacency matrix
 				writer.write(noNodes);
-						// Complete the code here 
+						// TODO: Done
 				String string_mat = reader.readLine();
 
 				// Create an adjacency matrix after reading from server
@@ -169,10 +182,10 @@ public class RoutingClient {
 					}
 
 				}
-						// Complete the code here 
+						// Done
 				
 				//The nodes are stored in a list, nodeList
-				List<Node> nodeList = new ArrayList<Node>();
+				ArrayList<Node> nodeList = new ArrayList<Node>();
 				for(int i = 0; i < noNodes; i++){
 					nodeList.add(new Node(i));
 				}
@@ -181,11 +194,35 @@ public class RoutingClient {
 				adjacenyToEdges(matrix, nodeList);
 				
 				// Finding shortest path for all nodes
-				
-						// Complete the code here 
-				
-				
-				socket.close();
+				for(int j=0; j<noNodes; ++j) {
+					computePaths(nodeList.get(j)); //??
+					for (int n = 0; n < noNodes; ++n) {
+						List<Integer> tmp_path = getShortestPathTo(nodeList.get(n));
+						System.out.println("Node " + j);
+						double total_dist = 0;
+						for (int opn = 0; opn < tmp_path.size(); ++opn) {
+							double totTime = 0;
+							tmp_path = getShortestPathTo(nodeList.get(opn));
+							for (int l = 0; l < tmp_path.size(); ++l) {
+								int curNodeTarget = tmp_path.get(l);
+								totTime += (nodeList.get(curNodeTarget)).minDistance;
+
+							}
+							System.out.print("Total time to reach node " + opn + ":");
+							System.out.println(totTime + "ms, Path: " + tmp_path);
+						}
+
+					}
+	//initialize the nodes for the next iteration.
+					for (int nr = 0; nr < noNodes; ++nr) {
+						(nodeList.get(nr)).minDistance = 0;
+						(nodeList.get(nr)).previous = (nodeList.get(nr));
+
+					}
+					// Complete the code here
+
+				}
+					socket.close();
 			}
 			System.out.println("Quit");
 
