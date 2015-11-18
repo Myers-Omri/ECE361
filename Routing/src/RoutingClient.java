@@ -65,26 +65,20 @@ public class RoutingClient {
 		
 		while (NodeQueue.size() != 0){
 			Node sourceNode = NodeQueue.poll();
-			Edge [] edge_arr = source.neighbors;
+			Edge [] edge_arr = sourceNode.neighbors;
 			
-			int num_edges = edge_arr.length;
-			for (int e = 0; e < num_edges; ++e){
-				Edge curr_edge = edge_arr[e];
+			for (Edge curr_edge : edge_arr){
 				Node targetNode = curr_edge.target;
 				double distanceThroughSource = sourceNode.minDistance + curr_edge.weight;
 				if (distanceThroughSource < targetNode.minDistance){
-					System.out.println("hello");
 					NodeQueue.remove(targetNode);
 					targetNode.minDistance = distanceThroughSource;
 					targetNode.previous = sourceNode;
-					System.out.println("Set the previous of "+targetNode.name+" to "+targetNode.previous.name);
 					NodeQueue.add(targetNode);
-					System.out.println(curr_edge.target.name + " " + curr_edge.weight);
 				}
 			}
 			
 		}
-		System.out.println("finished");
 		// Complete the body of this function
 	}
 
@@ -201,40 +195,21 @@ public class RoutingClient {
 				adjacenyToEdges(matrix, nodeList);
 				
 				// Finding shortest path for all nodes
-				for(int j=0; j<noNodes; ++j) {
-					computePaths(nodeList.get(j));
-					System.out.println("Node " + j);
-					for (int n = 0; n < noNodes; n++) {
-						List<Integer> tmp_path = getShortestPathTo(nodeList.get(n));
-						double total_dist = 0;
-						for (int opn = 0; opn < tmp_path.size(); opn++) {
-							tmp_path = getShortestPathTo(nodeList.get(opn));
-							for (int l = 0; l < tmp_path.size(); l++) {
-								int curNodeTarget = tmp_path.get(l);
-								total_dist += (nodeList.get(curNodeTarget)).minDistance;
-
-							}
-							System.out.print("Total time to reach node " + opn + ":");
-							System.out.print(total_dist + "ms, Path: [ ");
-								for(int i : tmp_path)
-									System.out.print(i+", ");
-							System.out.println(" ]");
-						}
-						tmp_path.clear();
-
+				for(Node n : nodeList) {
+					for (Node np : nodeList) {
+						np.minDistance = (np == n) ? 0 : Integer.MAX_VALUE;
+						np.previous = null;
 					}
-	//initialize the nodes for the next iteration.
-					for (int nr = 0; nr < noNodes; ++nr) {
-						(nodeList.get(nr)).minDistance = 0;
-						(nodeList.get(nr)).previous = null;
-
-					}
-					// Complete the code here
-
+					computePaths(n);
+					System.out.println("Node " + n.name);
+					for (Node m : nodeList) {
+						List<Integer> tmp_path = getShortestPathTo(m);
+						System.out.println("Total time to reach node "+m.name+": "+m.minDistance+" ms, Path: "+tmp_path);
+					}						
+					System.out.println();
 				}
 					socket.close();
 			}
-			System.out.println("Quit");
 
 			scr.close();
 		} catch (Exception e) {
