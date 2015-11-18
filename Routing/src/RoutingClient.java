@@ -1,23 +1,14 @@
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.util.StringTokenizer;
-import java.util.PriorityQueue;
-import java.util.Collections;
-import java.util.Random;
-
-import javax.lang.model.type.NullType;
-import javax.xml.ws.handler.MessageContext.Scope;
 
 // The network is represented by a graph, that contains nodes and edges
 class Node implements Comparable<Node>
@@ -25,7 +16,7 @@ class Node implements Comparable<Node>
 	public final int name;
 	public Edge[] neighbors;
 	public double minDistance = Double.POSITIVE_INFINITY;
-	public Node previous;     // to keep the path
+	public Node previous = null;     // to keep the path
 	public Node(int argName) 
 	{ 
 		name = argName; 
@@ -65,27 +56,35 @@ public class RoutingClient {
 			}
 		}
 	}
+	
 	public static void computePaths(Node source)
 	{
-		double minDistance = 0;
+		source.minDistance = 0;
 		PriorityQueue<Node> NodeQueue = new PriorityQueue<Node>();
 		NodeQueue.add(source);
+		
 		while (NodeQueue.size() != 0){
 			Node sourceNode = NodeQueue.poll();
 			Edge [] edge_arr = source.neighbors;
+			
 			int num_edges = edge_arr.length;
 			for (int e = 0; e < num_edges; ++e){
 				Edge curr_edge = edge_arr[e];
 				Node targetNode = curr_edge.target;
 				double distanceThroughSource = sourceNode.minDistance + curr_edge.weight;
 				if (distanceThroughSource < targetNode.minDistance){
-					//remove target from queue ??
+					System.out.println("hello");
+					NodeQueue.remove(targetNode);
 					targetNode.minDistance = distanceThroughSource;
 					targetNode.previous = sourceNode;
-					// add target node to queue
+					System.out.println("Set the previous of "+targetNode.name+" to "+targetNode.previous.name);
+					NodeQueue.add(targetNode);
+					System.out.println(curr_edge.target.name + " " + curr_edge.weight);
 				}
 			}
+			
 		}
+		System.out.println("finished");
 		// Complete the body of this function
 	}
 
@@ -94,17 +93,17 @@ public class RoutingClient {
 		List<Integer> path = new ArrayList<Integer>();
 		Node tmpTarget = target;
 
-		while (tmpTarget ) { //how to check if not null??
-			path.add(0, tmpTarget.name);
+		while (tmpTarget != null) { //how to check if not null??
+			path.add(tmpTarget.name);
 			tmpTarget = tmpTarget.previous;
 		}
-
+		
+		Collections.reverse(path);
 		return path;
 	}
 
 
 		// Complete the body of this function
-	}
 
 	/**
 	 * @param args
@@ -182,8 +181,16 @@ public class RoutingClient {
 					}
 
 				}
-						// Done
+				// Done
 				
+				System.out.println("Adjacency matrix");
+				for(double[] i : matrix)
+				{
+					for(double j : i)
+						System.out.print(j+" ");
+					System.out.println();
+				}
+			
 				//The nodes are stored in a list, nodeList
 				ArrayList<Node> nodeList = new ArrayList<Node>();
 				for(int i = 0; i < noNodes; i++){
@@ -195,28 +202,31 @@ public class RoutingClient {
 				
 				// Finding shortest path for all nodes
 				for(int j=0; j<noNodes; ++j) {
-					computePaths(nodeList.get(j)); //??
-					for (int n = 0; n < noNodes; ++n) {
+					computePaths(nodeList.get(j));
+					System.out.println("Node " + j);
+					for (int n = 0; n < noNodes; n++) {
 						List<Integer> tmp_path = getShortestPathTo(nodeList.get(n));
-						System.out.println("Node " + j);
 						double total_dist = 0;
-						for (int opn = 0; opn < tmp_path.size(); ++opn) {
-							double totTime = 0;
+						for (int opn = 0; opn < tmp_path.size(); opn++) {
 							tmp_path = getShortestPathTo(nodeList.get(opn));
-							for (int l = 0; l < tmp_path.size(); ++l) {
+							for (int l = 0; l < tmp_path.size(); l++) {
 								int curNodeTarget = tmp_path.get(l);
-								totTime += (nodeList.get(curNodeTarget)).minDistance;
+								total_dist += (nodeList.get(curNodeTarget)).minDistance;
 
 							}
 							System.out.print("Total time to reach node " + opn + ":");
-							System.out.println(totTime + "ms, Path: " + tmp_path);
+							System.out.print(total_dist + "ms, Path: [ ");
+								for(int i : tmp_path)
+									System.out.print(i+", ");
+							System.out.println(" ]");
 						}
+						tmp_path.clear();
 
 					}
 	//initialize the nodes for the next iteration.
 					for (int nr = 0; nr < noNodes; ++nr) {
 						(nodeList.get(nr)).minDistance = 0;
-						(nodeList.get(nr)).previous = (nodeList.get(nr));
+						(nodeList.get(nr)).previous = null;
 
 					}
 					// Complete the code here
@@ -226,10 +236,12 @@ public class RoutingClient {
 			}
 			System.out.println("Quit");
 
-
+			scr.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+
 
 	}
 
